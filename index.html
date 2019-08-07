@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="main.css">
+    
+        <title>Chat App</title>
+
+    </head>
+    <body>
+
+            <h1>Firebase Chatroom</h1>
+            <div id="login">
+               <p>Username:</p> 
+                 <form>
+                     <input type="text" id="loginText">
+                     <button id="loginSubmit">click to enter</button>
+                 </form>
+              
+            </div>
+            <div id="chatroom"></div>
+            <br><br>
+            
+        <div id="chatbox"> 
+            <form>
+            
+            <input type="text" id="user_chat">
+            <button id="submit">submit chat</button>
+
+            </form>
+        </div>
+        <br>
+        
+            
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/6.3.4/firebase.js"></script>
+
+        <!-- TODO: Add SDKs for Firebase products that you want to use
+            https://firebase.google.com/docs/web/setup#config-web-app -->
+
+        <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyDi-8uU71Gem13Ii7AU9Vn3ukO81-Eo8zc",
+            authDomain: "fir-chat-app-2343c.firebaseapp.com",
+            databaseURL: "https://fir-chat-app-2343c.firebaseio.com",
+            projectId: "fir-chat-app-2343c",
+            storageBucket: "",
+            messagingSenderId: "616037223747",
+            appId: "1:616037223747:web:04136f75f47130f9"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        //initalize a connection to our database
+        let db = firebase.firestore();
+
+        //get refs
+        let userInputTextbox = document.getElementById("user_chat")
+        let userNameBox = document.getElementById("loginText")
+        let submitButton = document.getElementById("submit")
+        let chatroomDiv = document.getElementById("chatroom")
+        let loginDiv = document.getElementById("login")
+        let chatbox = document.getElementById("chatbox")
+        let loginSubmit = document.getElementById("loginSubmit")
+        
+
+        //username submit button
+        loginSubmit.onclick=function(event){
+            event.preventDefault();
+
+            chatroomDiv.style.display = "block";
+            loginDiv.style.display = "none";
+            chatbox.style.display = "block";
+        }
+        //setup onclick for sumbitBUtton
+        submitButton.onclick = function(event) {
+            event.preventDefault();
+            
+            //get the UNIX timestamp
+            let now = new Date();
+            let timestamp = new Date().getTime();
+            console.log("Now: "+ now);
+            console.log("Timestamp: " + timestamp)
+
+            //extract the hours,minutes and seconds
+            let years = now.getFullYear();
+            let months = now.getMonth()+ 1;
+            let days = now.getDay() + 4;
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+            console.log(years, hours, minutes, seconds)
+
+            //save some data to our database
+            db.collection("chatroom").add({
+                "chat": userInputTextbox.value,
+                "months": months,
+                "days": days,
+                "timestamp": timestamp,
+                "years":years,
+                "hours": hours,
+                "minutes": minutes,
+                "seconds": seconds,
+                "username": userNameBox.value
+            })
+            .then(function(ref){
+                console.log("data stored successfully with ref #" + ref.id);
+            });
+
+            //clear userInputTextbox
+            userInputTextbox.value = "";
+        }
+
+        //everytime the database updates, retrieve the data
+        db.collection("chatroom").orderBy('timestamp').onSnapshot(function(snapshot){
+            //clear the innerHTML of chatroomDiv
+            chatroomDiv.innerHTML = "";
+
+            //iterate through the database and add the info to chatroomDiv
+            for(let i = 0; i < snapshot.docs.length; i++){
+                chatroomDiv.innerHTML += snapshot.docs[i].data().years + "/" + snapshot.docs[i].data().months + "/" + snapshot.docs[i].data().days + " " +snapshot.docs[i].data().hours+ ":" + snapshot.docs[i].data().minutes + ":" + snapshot.docs[i].data().seconds + " | " + snapshot.docs[i].data().username + ": ";
+                chatroomDiv.innerHTML += snapshot.docs[i].data().chat + "<br>";
+            }
+        })
+
+
+
+        </script>
+
+
+    </body>
+</html>
